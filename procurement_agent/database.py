@@ -71,51 +71,50 @@ def seed_sample_data() -> None:
         conn.close()
         return
 
-    base_date = datetime(2026, 9, 1)
+    try:
+        base_date = datetime(2026, 9, 1)
 
-    purchase_orders = [
-        ("PO-2026-0001", "AgroChem Solutions Sdn Bhd", (base_date).strftime("%Y-%m-%d"), "OPEN"),
-        ("PO-2026-0002", "HeavyParts Machinery Ltd", (base_date + timedelta(days=3)).strftime("%Y-%m-%d"), "OPEN"),
-        ("PO-2026-0003", "SafeWear Industries", (base_date + timedelta(days=5)).strftime("%Y-%m-%d"), "OPEN"),
-        ("PO-2026-0004", "PetroLubricants Malaysia", (base_date + timedelta(days=7)).strftime("%Y-%m-%d"), "OPEN"),
-        ("PO-2026-0005", "HarvestTech Automation", (base_date + timedelta(days=10)).strftime("%Y-%m-%d"), "OPEN"),
-    ]
+        purchase_orders = [
+            ("PO-2026-0001", "AgroChem Solutions Sdn Bhd", (base_date).strftime("%Y-%m-%d"), "OPEN"),
+            ("PO-2026-0002", "HeavyParts Machinery Ltd", (base_date + timedelta(days=3)).strftime("%Y-%m-%d"), "OPEN"),
+            ("PO-2026-0003", "SafeWear Industries", (base_date + timedelta(days=5)).strftime("%Y-%m-%d"), "OPEN"),
+            ("PO-2026-0004", "PetroLubricants Malaysia", (base_date + timedelta(days=7)).strftime("%Y-%m-%d"), "OPEN"),
+            ("PO-2026-0005", "HarvestTech Automation", (base_date + timedelta(days=10)).strftime("%Y-%m-%d"), "OPEN"),
+        ]
 
-    cursor.executemany(
-        "INSERT INTO purchase_orders (po_number, vendor_name, order_date, status) VALUES (?, ?, ?, ?)",
-        purchase_orders,
-    )
+        cursor.executemany(
+            "INSERT OR IGNORE INTO purchase_orders (po_number, vendor_name, order_date, status) VALUES (?, ?, ?, ?)",
+            purchase_orders,
+        )
 
-    line_items = [
-        # PO-2026-0001 – AgroChem Solutions
-        ("PO-2026-0001", "NPK Fertilizer 50kg Bag", 200, 45.00),
-        ("PO-2026-0001", "Roundup Herbicide 5L", 80, 32.50),
-        ("PO-2026-0001", "Urea Granules 50kg", 150, 38.00),
-        # PO-2026-0002 – HeavyParts Machinery
-        ("PO-2026-0002", "Tractor Fan Belt", 25, 18.75),
-        ("PO-2026-0002", "Hydraulic Filter Element", 40, 65.00),
-        ("PO-2026-0002", "Excavator Bucket Teeth Set", 10, 320.00),
-        # PO-2026-0003 – SafeWear Industries
-        ("PO-2026-0003", "Safety Boots Steel Toe", 100, 42.00),
-        ("PO-2026-0003", "Hi-Vis Reflective Vest", 150, 12.50),
-        ("PO-2026-0003", "Cut-Resistant Gloves", 200, 8.75),
-        # PO-2026-0004 – PetroLubricants
-        ("PO-2026-0004", "Hydraulic Oil ISO 68 20L", 60, 85.00),
-        ("PO-2026-0004", "Engine Oil 15W-40 4L", 120, 28.50),
-        ("PO-2026-0004", "Grease Cartridge EP2 400g", 100, 6.25),
-        # PO-2026-0005 – HarvestTech Automation
-        ("PO-2026-0005", "PLC Controller Module", 5, 1250.00),
-        ("PO-2026-0005", "Proximity Sensor M12", 30, 45.00),
-        ("PO-2026-0005", "Industrial Relay 24VDC", 50, 15.80),
-    ]
+        line_items = [
+            ("PO-2026-0001", "NPK Fertilizer 50kg Bag", 200, 45.00),
+            ("PO-2026-0001", "Roundup Herbicide 5L", 80, 32.50),
+            ("PO-2026-0001", "Urea Granules 50kg", 150, 38.00),
+            ("PO-2026-0002", "Tractor Fan Belt", 25, 18.75),
+            ("PO-2026-0002", "Hydraulic Filter Element", 40, 65.00),
+            ("PO-2026-0002", "Excavator Bucket Teeth Set", 10, 320.00),
+            ("PO-2026-0003", "Safety Boots Steel Toe", 100, 42.00),
+            ("PO-2026-0003", "Hi-Vis Reflective Vest", 150, 12.50),
+            ("PO-2026-0003", "Cut-Resistant Gloves", 200, 8.75),
+            ("PO-2026-0004", "Hydraulic Oil ISO 68 20L", 60, 85.00),
+            ("PO-2026-0004", "Engine Oil 15W-40 4L", 120, 28.50),
+            ("PO-2026-0004", "Grease Cartridge EP2 400g", 100, 6.25),
+            ("PO-2026-0005", "PLC Controller Module", 5, 1250.00),
+            ("PO-2026-0005", "Proximity Sensor M12", 30, 45.00),
+            ("PO-2026-0005", "Industrial Relay 24VDC", 50, 15.80),
+        ]
 
-    cursor.executemany(
-        "INSERT INTO po_line_items (po_number, item_description, approved_qty, approved_unit_price) VALUES (?, ?, ?, ?)",
-        line_items,
-    )
+        cursor.executemany(
+            "INSERT INTO po_line_items (po_number, item_description, approved_qty, approved_unit_price) VALUES (?, ?, ?, ?)",
+            line_items,
+        )
 
-    conn.commit()
-    conn.close()
+        conn.commit()
+    except Exception:
+        conn.rollback()
+    finally:
+        conn.close()
 
 
 def get_po_by_number(po_number: str) -> dict | None:
